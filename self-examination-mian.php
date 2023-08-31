@@ -68,11 +68,9 @@ function create_sub_cards_table() {
 
 
 // Run the function when the plugin is activated
-register_activation_hook(__FILE__, 'create_plugin_tables');
-function create_plugin_tables() {
-    create_cards_table();
-    create_sub_cards_table();
-}
+register_activation_hook(__FILE__, 'create_cards_table');
+register_activation_hook(__FILE__, 'create_sub_cards_table');
+
 // Hook for adding admin menus
 add_action('admin_menu', 'add_card_menu');
 
