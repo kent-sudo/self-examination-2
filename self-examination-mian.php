@@ -77,29 +77,29 @@ add_action('admin_menu', 'add_card_menu');
 // action function for above hook
 function add_card_menu() {
     // Add a new top-level menu
-    add_menu_page('Add Card', 'Add Card', 'manage_options', 'add_card', 'add_card_page' );
+    add_menu_page('自我檢測', '添加母卡片', 'manage_options', 'add_card', 'add_card_page' );
 }
 
 // display the admin options page
 function add_card_page() {
     ?>
     <div>
-        <h2>Add Card</h2>
+        <h2>添加卡片</h2>
         <form action="" method="post" enctype="multipart/form-data">
-            <p><label>Card Title: <input type="text" name="card_title" /></label></p>
-            <p><label>Card Image: <input type="file" name="card_image" /></label></p>
-            <p><label>Card Description: <textarea name="card_description"></textarea></label></p>
+            <p><label>標題: <input type="text" name="card_title" /></label></p>
+            <p><label>圖片: <input type="file" name="card_image" /></label></p>
+            <p><label>文字: <textarea name="card_description"></textarea></label></p>
             <p><input type="submit" value="Submit" /></p>
         </form>
     </div>
     <div>
         <?php if (isset($_GET['success'])): ?>
             <div class="notice notice-success">
-                <p>Card added successfully!</p>
+                <p>成功</p>
             </div>
         <?php elseif (isset($_GET['error'])): ?>
             <div class="notice notice-error">
-                <p>Error: <?php echo urldecode($_GET['error']); ?></p>
+                <p>失敗: <?php echo urldecode($_GET['error']); ?></p>
             </div>
         <?php endif; ?>
 
@@ -162,7 +162,7 @@ add_action('admin_menu', 'add_sub_card_menu');
 // action function for above hook
 function add_sub_card_menu() {
     // Add a new sub-menu under "Add Card"
-    add_submenu_page('add_card', 'Manage Sub Cards', 'Sub Cards', 'manage_options', 'manage_sub_cards', 'manage_sub_cards_page');
+    add_submenu_page('add_card', '添加子卡片', '添加子卡片', 'manage_options', 'manage_sub_cards', 'manage_sub_cards_page');
 }
 
 // import summernote
@@ -179,24 +179,21 @@ add_action('admin_enqueue_scripts', 'enqueue_summernote_assets');
 
 // Display the admin options page for managing sub cards
 function manage_sub_cards_page() {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        handle_sub_card_submission();
-    }
     $cards = get_all_cards();
     ?>
     <div>
         <h2>Manage Sub Cards</h2>
         <form action="" method="post" enctype="multipart/form-data">
-            <p><label>Sub Card Title: <input type="text" name="sub_card_title" /></label></p>
+            <p><label>添加子卡片: <input type="text" name="sub_card_title" /></label></p>
             <select name="sub_card_card_id">
-                <option value="">Select a Card</option>
+                <option value="">選擇母卡片</option>
                 <?php foreach ($cards as $card) : ?>
                     <option value="<?php echo esc_attr($card->id); ?>"><?php echo esc_html($card->title); ?></option>
                 <?php endforeach; ?>
             </select>
-            <p><label>Sub Card Click: <input type="text" name="sub_card_click" /></label></p>
-            <p><label>Sub Card Image: <input type="file" name="sub_card_image" /></label></p>
-            <p><label>Sub Card Description:</label></p>
+            <p><label>點擊區的文字: <input type="text" name="sub_card_click" /></label></p>
+            <p><label>圖片: <input type="file" name="sub_card_image" /></label></p>
+            <p><label>詳細的的講解:</label></p>
             <textarea name="sub_card_description" id="summernote_kent" >
             </textarea>
             <p><input type="submit" value="Submit" /></p>
@@ -219,15 +216,16 @@ function manage_sub_cards_page() {
 }
 
 // Handle the submission of the sub card form
-// Handle the submission of the sub card form
+add_action('admin_init', 'handle_sub_card_submission');
 function handle_sub_card_submission() {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sub_card_title'], $_POST['sub_card_description'], $_FILES['sub_card_image'], $_POST['sub_card_card_id'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sub_card_title'],$_POST['sub_card_click'], $_POST['sub_card_description'], $_FILES['sub_card_image'], $_POST['sub_card_card_id'])) {
         global $wpdb;
 
         $sub_table_name = $wpdb->prefix . 'sub_cards'; // Use your sub_cards table name
 
         $sub_card_title = sanitize_text_field($_POST['sub_card_title']);
-        $sub_card_description = sanitize_textarea_field($_POST['sub_card_description']);
+        $sub_card_description = $_POST['sub_card_description'];
+        $sub_card_click = $_POST['sub_card_click'];
         $sub_card_card_id = intval($_POST['sub_card_card_id']);
         $sub_card_image = $_FILES['sub_card_image'];
 
@@ -252,6 +250,7 @@ function handle_sub_card_submission() {
             'title' => $sub_card_title,
             'description' => $sub_card_description,
             'card_id' => $sub_card_card_id,
+            'click' => $sub_card_click,
             'image_url' => $image_url, // Use the image URL from file upload
         );
 
@@ -267,6 +266,293 @@ function handle_sub_card_submission() {
     }
 }
 
+// 添加一个新的edit菜单页面
+function add_edit_card_menu() {
+    add_submenu_page('add_card', '修改母卡片', '修改母卡片', 'manage_options', 'edit_card', 'edit_card_page');
+}
+
+add_action('admin_menu', 'add_edit_card_menu');
+function edit_card_page()
+{
+    $cards = get_all_cards();
+    ?>
+     <div class="row self-examination-main">
+    <?php
+    foreach ($cards as $card) {
+        ?>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12" style="margin-bottom:20px;">
+                <div class="card shadow-sm h-100 main-card" data-card-id="' . esc_attr($card->id) . '">
+                    <img src="<?php echo esc_html($card->image_url); ?>" alt="<?php echo esc_html($card->title); ?>" width="100%" height="250px">
+                    <h2><?php echo esc_html($card->title); ?></h2>
+                    <p><?php echo esc_html($card->description); ?></p>
+                </div>
+                <a class="btn btn-primary" href="<?php echo admin_url('admin.php?page=edit_card2&card_id=' . esc_attr($card->id)); ?>" role="button">修改</a>
+            </div>
+        <?php
+    }
+    ?>
+     </div>
+    <?php
+}
+
+function add_edit_card_menu2() {
+    add_submenu_page('add_card', '修改母卡片—修改', '修改母卡片-修改', 'manage_options', 'edit_card2', 'edit_card_page2');
+}
+
+add_action('admin_menu', 'add_edit_card_menu2');
+function edit_card_page2()
+{
+    // 获取要编辑的卡片ID
+    $card_id = isset($_GET['card_id']) ? intval($_GET['card_id']) : 0; // 通过URL参数获取
+
+    // 根据卡片ID从数据库中检索卡片数据
+    $card = get_card_by_id($card_id);
+
+    if ($card) {
+        // Card data is available in the $card variable.
+        echo 'Card Title: ' . esc_html($card->title);
+        ?>
+        <!-- 表单开始 -->
+        <div>
+            <h2>修改母卡片</h2>
+            <form action="" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="card_id_edit" value="<?php echo esc_attr($card->id); ?>" />
+                <p><label>標題: <input type="text" name="card_title_edit" value="<?php echo esc_attr($card->title); ?>" /></label></p>
+                <p><label>圖片: <input type="file" name="card_image_edit" value="<?php echo esc_attr($card->image_url); ?>" /></label></p>
+                <p><label>文字: <input type="text" name="card_description_edit" value="<?php echo esc_attr($card->description); ?>" /></textarea></label></p>
+                <p><input type="submit" value="Submit" /></p>
+            </form>
+        </div>
+        <div>
+            <?php if (isset($_GET['success'])): ?>
+                <div class="notice notice-success">
+                    <p>Card added successfully!</p>
+                </div>
+            <?php elseif (isset($_GET['error'])): ?>
+                <div class="notice notice-error">
+                    <p>Error: <?php echo urldecode($_GET['error']); ?></p>
+                </div>
+            <?php endif; ?>
+
+            <!-- Rest of your form goes here -->
+        </div>
+        <!-- 表单结束 -->
+        <?php
+    } else {
+        echo '卡片不存在或已被删除。';
+    }
+}
+
+function get_card_by_id($card_id) {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'cards';
+
+    $card = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d",
+            $card_id
+        )
+    );
+
+    return $card;
+}
+
+add_action('admin_init', 'handle_edit_card_submission');
+// 处理编辑后的卡片数据
+function handle_edit_card_submission() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['card_id_edit'], $_POST['card_title_edit'], $_POST['card_description_edit'], $_FILES['card_image_edit'])) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'cards';
+
+        $card_id = intval($_POST['card_id_edit']);
+        $card_title = sanitize_text_field($_POST['card_title_edit']);
+        $card_description = sanitize_textarea_field($_POST['card_description_edit']);
+        $card_image_edit = $_FILES['card_image_edit'];
+
+        // Validate and sanitize uploaded image
+        $image_url = '';
+        if (!empty($card_image_edit['tmp_name'])) {
+            if (!function_exists('wp_handle_upload')) {
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+            }
+            $uploadedfile = $_FILES['card_image_edit'];
+            $upload_overrides = array('test_form' => false);
+            $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+            if ($movefile && !isset($movefile['error'])) {
+                $image_url = esc_url($movefile['url']);
+            } else {
+                wp_redirect(admin_url('admin.php?page=add_card&error=' . urlencode($movefile['error'])));
+                exit;
+            }
+        }
+
+        // Update card data in database
+        $data = array(
+            'title' => $card_title,
+            'description' => $card_description,
+            'image_url' => $image_url, // Use the image URL from file upload
+        );
+        $where = array('id' => $card_id);
+        $format = array('%s', '%s', '%s'); // Data format (%s as string; more info in the wpdb documentation)
+        $where_format = array('%d'); // Where format
+
+        if ($wpdb->update($table_name, $data, $where, $format, $where_format)) {
+            wp_redirect(admin_url('admin.php?page=edit_card2&success=true&card_id='. $card_id));
+        } else {
+            wp_redirect(admin_url('admin.php?page=edit_card2&error=' . urlencode('Failed to update card in database.') . '&card_id=' . $card_id));
+        }
+        exit;
+    }
+}
+
+// 添加一个新的edit子菜单页面
+function add_edit_sub_card_menu() {
+    add_submenu_page('add_card', '修改子卡片', '修改子卡片', 'manage_options', 'edit_sub_card', 'edit_sub_card_page');
+}
+
+add_action('admin_menu', 'add_edit_sub_card_menu');
+function edit_sub_card_page()
+{
+    $sub_cards = get_all_sub_cards();
+    ?>
+    <div class="row self-examination-main">
+        <?php
+        foreach ($sub_cards as $sub_card) {
+            ?>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 sub-cards-container">
+                <div class="card shadow-sm h-100 sub-card" data-card-id="' . esc_attr($sub_card->id) . '">
+                    <img src="<?php echo esc_html($sub_card->image_url); ?>" alt="<?php echo esc_html($sub_card->title); ?>" width="100%" height="250px">
+                    <h2><?php echo esc_html($sub_card->title); ?></h2>
+                    <p><?php echo esc_html($sub_card->click); ?></p>
+                </div>
+                <a class="btn btn-primary" href="<?php echo admin_url('admin.php?page=edit_sub_card2&sub_card_id=' . esc_attr($sub_card->id)); ?>" role="button">修改</a>
+            </div>
+            <?php
+        }
+        ?>
+    </div>
+    <?php
+}
+
+function add_edit_sub_card_menu2() {
+    add_submenu_page('add_card', '修改子卡片-修改', '修改子卡片-修改', 'manage_options', 'edit_sub_card2', 'edit_sub_card_page2');
+}
+
+add_action('admin_menu', 'add_edit_sub_card_menu2');
+function edit_sub_card_page2()
+{
+    // 获取要编辑的卡片ID
+    $sub_card_id = isset($_GET['sub_card_id']) ? intval($_GET['sub_card_id']) : 0; // 通过URL参数获取
+
+    // 根据卡片ID从数据库中检索卡片数据
+    $sub_card = get_sub_card_by_id($sub_card_id);
+
+    if ($sub_card) {
+        // Card data is available in the $card variable.
+        echo 'Card Title: ' . esc_html($sub_card->title);
+        ?>
+        <!-- 表单开始 -->
+        <div>
+            <h2>Edit sub Card</h2>
+            <form action="" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="sub_card_id_edit" value="<?php echo esc_attr($sub_card->id); ?>" />
+                <p><label>標題: <input type="text" name="sub_card_title_edit" value="<?php echo esc_attr($sub_card->title); ?>" /></label></p>
+                <p><label>點擊的文字: <input type="text" name="sub_card_click_edit" value="<?php echo esc_attr($sub_card->click); ?>" /></label></p>
+                <p><label>圖片: <input type="file" name="sub_card_image_edit" value="<?php echo esc_attr($sub_card->image_url); ?>" /></label></p>
+                <p><label>詳細的講解:</label></p>
+                <textarea name="sub_card_description_edit" id="summernote_kent">
+                    <?php echo $sub_card->description ?>
+                </textarea>
+                <p><input type="submit" value="Submit" /></p>
+            </form>
+        </div>
+        <div>
+            <?php if (isset($_GET['success'])): ?>
+                <div class="notice notice-success">
+                    <p>成功!</p>
+                </div>
+            <?php elseif (isset($_GET['error'])): ?>
+                <div class="notice notice-error">
+                    <p>失敗: <?php echo urldecode($_GET['error']); ?></p>
+                </div>
+            <?php endif; ?>
+
+            <!-- Rest of your form goes here -->
+        </div>
+        <!-- 表单结束 -->
+        <?php
+    } else {
+        echo '卡片不存在或已被删除。';
+    }
+}
+
+function get_sub_card_by_id($sub_card_id) {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'sub_cards';
+
+    $sub_card = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d",
+            $sub_card_id
+        )
+    );
+
+    return $sub_card;
+}
+
+add_action('admin_init', 'handle_edit_sub_card_submission');
+// 处理编辑后的卡片数据
+function handle_edit_sub_card_submission() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sub_card_id_edit'], $_POST['sub_card_title_edit'], $_POST['sub_card_click_edit'], $_POST['sub_card_description_edit'], $_FILES['sub_card_image_edit'])) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'sub_cards';
+
+        $sub_card_id = intval($_POST['sub_card_id_edit']);
+        $sub_card_title = sanitize_text_field($_POST['sub_card_title_edit']);
+        $sub_card_click = sanitize_text_field($_POST['sub_card_click_edit']);
+        $sub_card_description = sanitize_textarea_field($_POST['sub_card_description_edit']);
+        $sub_card_image_edit = $_FILES['sub_card_image_edit'];
+
+        // Validate and sanitize uploaded image
+        $image_url = '';
+        if (!empty($sub_card_image_edit['tmp_name'])) {
+            if (!function_exists('wp_handle_upload')) {
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+            }
+            $uploadedfile = $_FILES['sub_card_image_edit'];
+            $upload_overrides = array('test_form' => false);
+            $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+            if ($movefile && !isset($movefile['error'])) {
+                $image_url = esc_url($movefile['url']);
+            } else {
+                wp_redirect(admin_url('admin.php?page=add_sub_card&error=' . urlencode($movefile['error'])));
+                exit;
+            }
+        }
+
+        // Update card data in database
+        $data = array(
+            'title' => $sub_card_title,
+            'description' => $sub_card_description,
+            'click' => $sub_card_click,
+            'image_url' => $image_url, // Use the image URL from file upload
+        );
+        $where = array('id' => $sub_card_id);
+        $format = array('%s', '%s', '%s'); // Data format (%s as string; more info in the wpdb documentation)
+        $where_format = array('%d'); // Where format
+
+        if ($wpdb->update($table_name, $data, $where, $format, $where_format)) {
+            wp_redirect(admin_url('admin.php?page=edit_sub_card2&success=true&sub_card_id='. $sub_card_id));
+        } else {
+            wp_redirect(admin_url('admin.php?page=edit_sub_card2&error=' . urlencode('Failed to update sub card in database.') . '&card_id=' . $sub_card_id));
+        }
+        exit;
+    }
+}
 
 // Register the shortcode
 add_shortcode('show_cards', 'show_cards_shortcode');
@@ -307,45 +593,44 @@ function show_cards_shortcode($atts) {
     $output = '
     <div class="row self-examination-main">
     <em style=" text-align: center;">Step 1</em>
-    <h3 style=" text-align: center;">選擇設備類型</h3>'; // Adding an outer div container
+    <h3 style=" text-align: center;">選擇設備類型</h3>';
+
+    // Generating main card HTML
     foreach ($cards as $card) {
         $output .= '
             <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12" style="margin-bottom:20px;">
-                <!--click to move section2-->
-                <a href="#section2" style=" text-decoration: none;">
-                    <div class="card shadow-sm h-100" data-card-id="' . esc_attr($card->id) . '" >
-                        <img src="' . esc_url($card->image_url) . '" alt="' . esc_attr($card->title) . '" width="100%" height="auto">
-                        <h2>' . esc_html($card->title) . '</h2>
-                        <p>' . esc_html($card->description) . '</p>
-                    </div>
-                </a>
+                <div class="card shadow-sm h-100 main-card" data-card-id="' . esc_attr($card->id) . '">
+                    <img src="' . esc_url($card->image_url) . '" alt="' . esc_attr($card->title) . '" width="100%" height="auto">
+                    <h2>' . esc_html($card->title) . '</h2>
+                    <p>' . esc_html($card->description) . '</p>
+                </div>
             </div>';
     }
 
+    // Generating sub-card container HTML
     $output .= ' <em style=" text-align: center;">Step 2</em>';
     foreach ($sub_cards as $sub_card) {
         $output .= '
-        <div id="section2">
-            <a href="#section3">
-                <div class="card shadow-sm h-100" data-card-id="' . esc_attr($sub_card->id) . '" >
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 sub-cards-container" style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
+                <div class="card shadow-sm h-100 sub-card" data-card-id="' . esc_attr($sub_card->id) . '">
                     <img src="' . esc_url($sub_card->image_url) . '" alt="' . esc_attr($sub_card->title) . '" width="100%" height="auto">
                     <h2>' . esc_html($sub_card->title) . '</h2>
                     <p>' . esc_html($sub_card->click) . '</p>
                 </div>
-            </a>
-        </div>';
+            </div>';
     }
 
+    // Generating sub-card description HTML
     $output .= ' <em style=" text-align: center;">Step 3</em>';
     foreach ($sub_cards as $sub_card) {
         $output .= '
-        <div id="section3">
-        ' . esc_html($sub_card->description) . '
-        </div>
-        ';
+        <div class="sub-card-description"  style="display: none; text-align: ;" data-card-id="' . esc_attr($sub_card->id) . '">
+            <p>' . $sub_card->description . '</p>
+        </div>';
     }
 
     $output .= '</div>'; // Closing the outer div container
+
     return $output;
 }
 ?>

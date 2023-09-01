@@ -1,8 +1,9 @@
 jQuery(document).ready(function($) {
     $('#summernote_kent').summernote({
-        height: 300,                 // set editor height
-        minHeight: null,             // set minimum height of editor
-        maxHeight: null,             // set maximum height of editor
-        focus: true                  // set focus to editable area after initializing summernote
+        height:350,
+        minHeight:null,    // 定义编辑框最低的高度
+        maxHeight:null,    // 定义编辑框最高的高度
+        disableDragAndDrop:true,   // 禁止拖拽
+        lang:'zh-CN'
     });
 });

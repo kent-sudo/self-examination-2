@@ -2,12 +2,38 @@ html {
     scroll-behavior: smooth;
 }
 
-#section2 {
-
-}
-#section3 {
-
-}
 self-examination-main a {
     text-decoration: none;
+}
+/* Style for main card */
+.main-card {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border: 1px solid #ccc;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* Style for sub-card container */
+.sub-cards-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #ddd;
+    cursor: pointer;
+}
+
+/* Style for sub-card description */
+.sub-card-description {
+
+}
+
+/* Center aligning text */
+.self-examination-main {
+    margin: 20px auto;
+}
+
+/* Adding some spacing between sections */
+.self-examination-main > * {
+    margin-bottom: 40px;
 }
