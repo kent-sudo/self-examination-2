@@ -373,6 +373,7 @@ function handle_edit_card_submission() {
 
         // Validate and sanitize uploaded image
         $image_url = '';
+        
         if (!empty($card_image_edit['tmp_name'])) {
             if (!function_exists('wp_handle_upload')) {
                 require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -514,7 +515,7 @@ function handle_edit_sub_card_submission() {
         $sub_card_id = intval($_POST['sub_card_id_edit']);
         $sub_card_title = sanitize_text_field($_POST['sub_card_title_edit']);
         $sub_card_click = sanitize_text_field($_POST['sub_card_click_edit']);
-        $sub_card_description = sanitize_textarea_field($_POST['sub_card_description_edit']);
+        $sub_card_description = $_POST['sub_card_description_edit'];
         $sub_card_image_edit = $_FILES['sub_card_image_edit'];
 
         // Validate and sanitize uploaded image
@@ -601,8 +602,8 @@ function show_cards_shortcode($atts) {
             <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12" style="margin-bottom:20px;">
                 <div class="card shadow-sm h-100 main-card" data-card-id="' . esc_attr($card->id) . '">
                     <img src="' . esc_url($card->image_url) . '" alt="' . esc_attr($card->title) . '" width="100%" height="auto">
-                    <h2>' . esc_html($card->title) . '</h2>
-                    <p>' . esc_html($card->description) . '</p>
+                    <h6>' . esc_html($card->title) . '</h6>
+                    <p style="10px;">' . esc_html($card->description) . '</p>
                 </div>
             </div>';
     }
@@ -625,7 +626,7 @@ function show_cards_shortcode($atts) {
     foreach ($sub_cards as $sub_card) {
         $output .= '
         <div class="sub-card-description"  style="display: none; text-align: ;" data-card-id="' . esc_attr($sub_card->id) . '">
-            <p>' . $sub_card->description . '</p>
+            ' . $sub_card->description . '
         </div>';
     }
 
