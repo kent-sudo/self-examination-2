@@ -21,9 +21,16 @@ jQuery(document).ready(function($) {
         // 如果子卡片容器被展开，滚动页面以使其可见
         if (subCards.is(':visible')) {
             $('html, body').animate({
-                scrollTop: subCards.offset().top
+                scrollTop: subCards.offset().top-150
             }, 800);
         }
+    });
+
+    $('.main-card').on('click', function() {
+
+        $('.main-card').removeClass('main-card-clicked');
+
+        $(this).addClass('main-card-clicked');
     });
 
     $('.sub-card').click(function() {
@@ -34,5 +41,13 @@ jQuery(document).ready(function($) {
 
         // Show the description of the clicked sub card
         $('.sub-card-description[data-card-id="' + cardId + '"]').show();
+    });
+
+    $('.sub-cards-container').on('click', function() {
+        // Remove the 'sub-card-clicked' class from all '.sub-cards-container' elements
+        $('.sub-cards-container').removeClass('sub-cards-container-clicked');
+
+        // Add the 'sub-card-clicked' class to the clicked '.sub-cards-container' element
+        $(this).addClass('sub-cards-container-clicked');
     });
 });

@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: My Custom Card Plugin
+Plugin Name: KENT Card Plugin
 Description: A plugin to add cards from the admin panel.
-Version: 1.0
-Author: Your Name
+Version: 2.0
+Author: KENT
 */
 
 // Enqueue Bootstrap styles and scripts
@@ -173,6 +173,7 @@ function enqueue_summernote_assets() {
     wp_enqueue_style('summernote-css', '//cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.css');
     wp_enqueue_script('summernote-js', '//cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.js', array('jquery'), null, false);
     wp_enqueue_script('summernote-init-js', plugin_dir_url(__FILE__) . 'js/summernote-init.js', array('jquery'), null, true);
+    wp_enqueue_script('summernote-zh-TW.js', plugin_dir_url(__FILE__) . 'summernote/lang/summernote-zh-TW.js', array('jquery'), null, false);
 }
 
 add_action('admin_enqueue_scripts', 'enqueue_summernote_assets');
@@ -194,7 +195,7 @@ function manage_sub_cards_page() {
             <p><label>點擊區的文字: <input type="text" name="sub_card_click" /></label></p>
             <p><label>圖片: <input type="file" name="sub_card_image" /></label></p>
             <p><label>詳細的的講解:</label></p>
-            <textarea name="sub_card_description" id="summernote_kent" >
+            <textarea name="sub_card_description" type="text" id="summernote_kent" >
             </textarea>
             <p><input type="submit" value="Submit" /></p>
         </form>
@@ -224,7 +225,10 @@ function handle_sub_card_submission() {
         $sub_table_name = $wpdb->prefix . 'sub_cards'; // Use your sub_cards table name
 
         $sub_card_title = sanitize_text_field($_POST['sub_card_title']);
-        $sub_card_description = $_POST['sub_card_description'];
+        //summernote content
+        $content = $_POST['sub_card_description'];
+        $content = wp_kses_post($content);
+        $sub_card_description = $content;
         $sub_card_click = $_POST['sub_card_click'];
         $sub_card_card_id = intval($_POST['sub_card_card_id']);
         $sub_card_image = $_FILES['sub_card_image'];
@@ -276,24 +280,65 @@ function edit_card_page()
 {
     $cards = get_all_cards();
     ?>
-     <div class="row self-examination-main">
-    <?php
-    foreach ($cards as $card) {
-        ?>
+    <div class="row self-examination-main">
+        <?php
+        foreach ($cards as $card) {
+            ?>
             <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12" style="margin-bottom:20px;">
-                <div class="card shadow-sm h-100 main-card" data-card-id="' . esc_attr($card->id) . '">
+                <div class="card shadow-sm h-100 main-card" data-card-id="<?php echo esc_attr($card->id); ?>">
                     <img src="<?php echo esc_html($card->image_url); ?>" alt="<?php echo esc_html($card->title); ?>" width="100%" height="250px">
                     <h2><?php echo esc_html($card->title); ?></h2>
                     <p><?php echo esc_html($card->description); ?></p>
                 </div>
                 <a class="btn btn-primary" href="<?php echo admin_url('admin.php?page=edit_card2&card_id=' . esc_attr($card->id)); ?>" role="button">修改</a>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="card_id_edit" value="<?php echo esc_attr($card->id); ?>">
+                    <p><input class="btn btn-danger" type="submit" name="delete_card" value="刪除" onclick="return confirm('您確定要刪除這張卡嗎？');" /></p>
+                </form>
             </div>
-        <?php
-    }
-    ?>
-     </div>
+            <?php
+        }
+        ?>
+    </div>
     <?php
 }
+
+add_action('admin_init', 'handle_delete_card_submission');
+// 处理编辑后的卡片数据
+function handle_delete_card_submission() {
+    if (isset($_POST['delete_card'])) {
+
+        // Get the card ID to delete
+        $card_id_to_delete = isset($_POST['card_id_edit']) ? intval($_POST['card_id_edit']) : 0;
+
+        // Delete the card
+        if (delete_card_by_id($card_id_to_delete)) {
+            // Card deletion was successful
+            wp_safe_redirect(admin_url('admin.php?page=edit_card'), 302);
+        } else {
+            // Error occurred during deletion
+            wp_safe_redirect(admin_url('admin.php?page=edit_card2&card_id=' . esc_attr($card_id_to_delete) . '&error=delete_failed'), 302);
+        }
+        exit();
+    }
+}
+
+// delete_card
+function delete_card_by_id($card_id) {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'cards';
+
+    // Delete the card from the database
+    $result = $wpdb->delete(
+        $table_name,
+        array('id' => $card_id),
+        array('%d')
+    );
+
+    return $result !== false;
+}
+
 
 function add_edit_card_menu2() {
     add_submenu_page('add_card', '修改母卡片—修改', '修改母卡片-修改', 'manage_options', 'edit_card2', 'edit_card_page2');
@@ -373,7 +418,7 @@ function handle_edit_card_submission() {
 
         // Validate and sanitize uploaded image
         $image_url = '';
-        
+
         if (!empty($card_image_edit['tmp_name'])) {
             if (!function_exists('wp_handle_upload')) {
                 require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -416,19 +461,27 @@ function add_edit_sub_card_menu() {
 add_action('admin_menu', 'add_edit_sub_card_menu');
 function edit_sub_card_page()
 {
+    $card = get_all_cards();
     $sub_cards = get_all_sub_cards();
     ?>
     <div class="row self-examination-main">
         <?php
         foreach ($sub_cards as $sub_card) {
+            $matching_card = find_card_by_id($sub_card->card_id);
             ?>
             <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 sub-cards-container">
                 <div class="card shadow-sm h-100 sub-card" data-card-id="' . esc_attr($sub_card->id) . '">
+                    <!--card title -->
+                    <h2>母卡片是<?php echo esc_html($matching_card) ?></h2>
                     <img src="<?php echo esc_html($sub_card->image_url); ?>" alt="<?php echo esc_html($sub_card->title); ?>" width="100%" height="250px">
                     <h2><?php echo esc_html($sub_card->title); ?></h2>
                     <p><?php echo esc_html($sub_card->click); ?></p>
                 </div>
                 <a class="btn btn-primary" href="<?php echo admin_url('admin.php?page=edit_sub_card2&sub_card_id=' . esc_attr($sub_card->id)); ?>" role="button">修改</a>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="sub_card_id_edit" value="<?php echo esc_attr($sub_card->id); ?>">
+                    <p><input class="btn btn-danger" type="submit" name="delete_sub_card" value="刪除" onclick="return confirm('您確定要刪除這張卡嗎？');" /></p>
+                </form>
             </div>
             <?php
         }
@@ -437,6 +490,64 @@ function edit_sub_card_page()
     <?php
 }
 
+function find_card_by_id($card_id) {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'cards';
+
+    $card = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT title FROM $table_name WHERE id = %d",
+            $card_id
+        )
+    );
+
+    if ($card) {
+        return $card->title; // Return the title if the card is found
+    } else {
+        return false; // Return false if the card is not found
+    }
+}
+
+
+//delete sub card
+add_action('admin_init', 'handle_delete_sub_card_submission');
+
+function handle_delete_sub_card_submission() {
+    if (isset($_POST['delete_sub_card'])) {
+
+        // Get the card ID to delete
+        $sub_card_id_to_delete = isset($_POST['sub_card_id_edit']) ? intval($_POST['sub_card_id_edit']) : 0;
+
+        // Delete the card
+        if (delete_sub_card_by_id($sub_card_id_to_delete)) {
+            // Card deletion was successful
+            wp_safe_redirect(admin_url('admin.php?page=edit_sub_card'), 302);
+        } else {
+            // Error occurred during deletion
+            wp_safe_redirect(admin_url('admin.php?page=edit_sub_card&sub_card_id=' . esc_attr($sub_card_id_to_delete) . '&error=delete_failed'), 302);
+        }
+        exit();
+    }
+}
+
+// delete_card
+function delete_sub_card_by_id($sub_card_id) {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'sub_cards';
+
+    // Delete the card from the database
+    $result = $wpdb->delete(
+        $table_name,
+        array('id' => $sub_card_id),
+        array('%d')
+    );
+
+    return $result !== false;
+}
+
+// 处理编辑后的卡片数据
 function add_edit_sub_card_menu2() {
     add_submenu_page('add_card', '修改子卡片-修改', '修改子卡片-修改', 'manage_options', 'edit_sub_card2', 'edit_sub_card_page2');
 }
@@ -463,7 +574,7 @@ function edit_sub_card_page2()
                 <p><label>點擊的文字: <input type="text" name="sub_card_click_edit" value="<?php echo esc_attr($sub_card->click); ?>" /></label></p>
                 <p><label>圖片: <input type="file" name="sub_card_image_edit" value="<?php echo esc_attr($sub_card->image_url); ?>" /></label></p>
                 <p><label>詳細的講解:</label></p>
-                <textarea name="sub_card_description_edit" id="summernote_kent">
+                <textarea name="sub_card_description_edit" type="text" id="summernote_kent">
                     <?php echo $sub_card->description ?>
                 </textarea>
                 <p><input type="submit" value="Submit" /></p>
@@ -511,11 +622,13 @@ function handle_edit_sub_card_submission() {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'sub_cards';
-
         $sub_card_id = intval($_POST['sub_card_id_edit']);
         $sub_card_title = sanitize_text_field($_POST['sub_card_title_edit']);
         $sub_card_click = sanitize_text_field($_POST['sub_card_click_edit']);
-        $sub_card_description = $_POST['sub_card_description_edit'];
+        //summernote content
+        $content = $_POST['sub_card_description_edit'];
+        $content = wp_kses_post($content);
+        $sub_card_description = $content;
         $sub_card_image_edit = $_FILES['sub_card_image_edit'];
 
         // Validate and sanitize uploaded image
@@ -592,6 +705,7 @@ function show_cards_shortcode($atts) {
     $sub_cards = get_all_sub_cards();
 
     $output = '
+    <div class="container">
     <div class="row self-examination-main">
     <em style=" text-align: center;">Step 1</em>
     <h3 style=" text-align: center;">選擇設備類型</h3>';
@@ -599,38 +713,41 @@ function show_cards_shortcode($atts) {
     // Generating main card HTML
     foreach ($cards as $card) {
         $output .= '
-            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12" style="margin-bottom:20px;">
+            <div class="col col-6 col-sm-6 col-md-3 col-lg-3" style="margin-bottom:20px;">
                 <div class="card shadow-sm h-100 main-card" data-card-id="' . esc_attr($card->id) . '">
                     <img src="' . esc_url($card->image_url) . '" alt="' . esc_attr($card->title) . '" width="100%" height="auto">
-                    <h6>' . esc_html($card->title) . '</h6>
-                    <p style="10px;">' . esc_html($card->description) . '</p>
+                    <h5>' . esc_html($card->title) . '</h5>
+                    <h7 style="color: #3f596b;font-size: 7px;">' . esc_html($card->description) . '</h7>
                 </div>
             </div>';
     }
 
     // Generating sub-card container HTML
-    $output .= ' <em style=" text-align: center;">Step 2</em>';
+    $output .= ' <em style=" text-align: center;">Step 2 </em>
+                <h3 style=" text-align: center;">選擇發生的狀況類型</h3>';
     foreach ($sub_cards as $sub_card) {
         $output .= '
-            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 sub-cards-container" style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
+            <div class="col col-4 col-sm-4 col-md-2 col-lg-2 sub-cards-container " style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
                 <div class="card shadow-sm h-100 sub-card" data-card-id="' . esc_attr($sub_card->id) . '">
                     <img src="' . esc_url($sub_card->image_url) . '" alt="' . esc_attr($sub_card->title) . '" width="100%" height="auto">
-                    <h2>' . esc_html($sub_card->title) . '</h2>
-                    <p>' . esc_html($sub_card->click) . '</p>
+                    <h5>' . esc_html($sub_card->title) . '</h5>
+                    <h7 style="color: #3f596b;font-size: 7px;">' . esc_html($sub_card->click) . '</h7>
                 </div>
             </div>';
     }
 
     // Generating sub-card description HTML
-    $output .= ' <em style=" text-align: center;">Step 3</em>';
+    $output .= ' <em style=" text-align: center;">Step 3</em>
+                <h3 style=" text-align: center;">故障狀況&解決方式</h3>';
     foreach ($sub_cards as $sub_card) {
+    $decoded_string = html_entity_decode($sub_card->description );
         $output .= '
         <div class="sub-card-description"  style="display: none; text-align: ;" data-card-id="' . esc_attr($sub_card->id) . '">
-            ' . $sub_card->description . '
+            '.$sub_card->description.'
         </div>';
     }
 
-    $output .= '</div>'; // Closing the outer div container
+    $output .= '</div></div>'; // Closing the outer div container
 
     return $output;
 }
