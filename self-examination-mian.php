@@ -8,7 +8,7 @@ Author: KENT
 
 // Enqueue Bootstrap styles and scripts
 function enqueue_bootstrap_assets() {
-    wp_enqueue_style('css', plugin_dir_url(__FILE__) . 'css/styles.css');
+    wp_enqueue_style('kent-self-examinaton-css', plugin_dir_url(__FILE__) . 'css/kent-self-examination/styles.css');
     wp_register_script('kent-custom-card-js', plugin_dir_url(__FILE__) . 'js/custom-card.js', array('jquery'), null, false);
     wp_enqueue_script('kent-custom-card-js');
     wp_enqueue_style('prefix_bootstrap', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css');
@@ -731,8 +731,8 @@ function show_cards_shortcode($atts) {
             <div class="col col-4 col-sm-4 col-md-2 col-lg-2 kent-sub-cards-container " style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
                 <div class="card shadow-sm h-100 kent-sub-card" data-card-id="' . esc_attr($sub_card->id) . '">
                     <img src="' . esc_url($sub_card->image_url) . '" alt="' . esc_attr($sub_card->title) . '" width="100%" height="auto">
-                    <h5>' . esc_html($sub_card->title) . '</h5>
-                    <h7 style="color: #3f596b;font-size: 7px;">' . esc_html($sub_card->click) . '</h7>
+                    <h5 style=" text-align: center;">' . esc_html($sub_card->title) . '</h5>
+                    <h7 style="color: #3f596b;font-size: 7px;text-align: center;">' . esc_html($sub_card->click) . '</h7>
                 </div>
             </div>';
     }
@@ -741,7 +741,6 @@ function show_cards_shortcode($atts) {
     $output .= ' <em style=" text-align: center;">Step 3</em>
                 <h3 style=" text-align: center;">故障狀況&解決方式</h3>';
     foreach ($sub_cards as $sub_card) {
-    $decoded_string = html_entity_decode($sub_card->description );
         $output .= '
         <div class="kent-sub-card-description"  style="display: none; text-align: ;" data-card-id="' . esc_attr($sub_card->id) . '">
             '.$sub_card->description.'

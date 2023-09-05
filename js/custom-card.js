@@ -1,39 +1,36 @@
 jQuery(document).ready(function($) {
-    // 当主卡片被点击时
-    $('.kent-main-card[data-card-id]').on('click', function(event) {
+    // Event delegation for main card click
+    $(document).on('click', '.kent-main-card[data-card-id]', function(event) {
         event.preventDefault();
 
-        // 获取被点击的主卡片的卡片ID
-        var cardId = $(this).data('kent-card-id');
-
-        // 找到具有相同卡片ID的所有子卡片容器
+        var cardId = $(this).data('card-id');
         var subCards = $('.kent-sub-cards-container[data-card-id="' + cardId + '"]');
 
-        // 隐藏其他所有子卡片容器
+        // Hide other sub card containers
         $('.kent-sub-cards-container').not(subCards).slideUp();
 
         // Hide all sub card descriptions
         $('.kent-sub-card-description').hide();
 
-        // 切换被点击的主卡片关联的子卡片容器的可见性
+        // Toggle visibility of the clicked sub card containers
         subCards.slideToggle();
 
-        // 如果子卡片容器被展开，滚动页面以使其可见
+        // Scroll to the clicked sub card container
         if (subCards.is(':visible')) {
             $('html, body').animate({
-                scrollTop: subCards.offset().top-150
+                scrollTop: subCards.offset().top - 150
             }, 800);
         }
     });
 
-    $('.kent-main-card').on('click', function() {
-
+    // Add clicked style to main cards
+    $(document).on('click', '.kent-main-card', function() {
         $('.kent-main-card').removeClass('kent-main-card-clicked');
-
         $(this).addClass('kent-main-card-clicked');
     });
 
-    $('.sub-card').click(function() {
+    // Event delegation for sub card click
+    $(document).on('click', '.kent-sub-card', function() {
         var cardId = $(this).data('card-id');
 
         // Hide all sub card descriptions
@@ -43,11 +40,12 @@ jQuery(document).ready(function($) {
         $('.kent-sub-card-description[data-card-id="' + cardId + '"]').show();
     });
 
-    $('.kent-sub-cards-container').on('click', function() {
-        // Remove the 'sub-card-clicked' class from all '.sub-cards-container' elements
+    // Event delegation for sub card container click
+    $(document).on('click', '.kent-sub-cards-container', function() {
+        // Remove the 'kent-sub-cards-container-clicked' class from all elements
         $('.kent-sub-cards-container').removeClass('kent-sub-cards-container-clicked');
 
-        // Add the 'sub-card-clicked' class to the clicked '.sub-cards-container' element
+        // Add the 'kent-sub-cards-container-clicked' class to the clicked element
         $(this).addClass('kent-sub-cards-container-clicked');
     });
 });
