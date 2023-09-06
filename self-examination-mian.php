@@ -8,13 +8,17 @@ Author: KENT
 
 // Enqueue Bootstrap styles and scripts
 function enqueue_bootstrap_assets() {
-    wp_enqueue_style('kent-self-examinaton-css', plugin_dir_url(__FILE__) . 'css/kent-self-examination/styles.css');
-    wp_register_script('kent-custom-card-js', plugin_dir_url(__FILE__) . 'js/custom-card.js', array('jquery'), null, false);
-    wp_enqueue_script('kent-custom-card-js');
-    wp_enqueue_style('prefix_bootstrap', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css');
-    wp_enqueue_script('prefix_bootstrap_js', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js', array('jquery'), null, false);
-    wp_enqueue_script('prefix_bootstrap_bundle', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js', array('jquery'), null, false);
-    wp_enqueue_script('prefix_jq', '//code.jquery.com/jquery-3.5.1.min.js', array('jquery'), null, false);
+    global $post;
+    if (has_shortcode($post->post_content, 'show_cards'))
+    {
+        wp_enqueue_style('kent-self-examinaton-css', plugin_dir_url(__FILE__) . 'css/kent-self-examination/styles.css');
+        wp_register_script('kent-custom-card-js', plugin_dir_url(__FILE__) . 'js/custom-card.js', array('jquery'), null, false);
+        wp_enqueue_script('kent-custom-card-js');
+        wp_enqueue_style('prefix_bootstrap', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css');
+        wp_enqueue_script('prefix_bootstrap_js', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js', array('jquery'), null, false);
+        wp_enqueue_script('prefix_bootstrap_bundle', '//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js', array('jquery'), null, false);
+        wp_enqueue_script('prefix_jq', '//code.jquery.com/jquery-3.5.1.min.js', array('jquery'), null, false);
+    }
 }
 
 add_action('wp_enqueue_scripts', 'enqueue_bootstrap_assets');
