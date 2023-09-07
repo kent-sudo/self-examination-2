@@ -744,8 +744,6 @@ function show_cards_shortcode($atts) {
                     <img src="' . esc_url($sub_card->image_url) . '" alt="' . esc_attr($sub_card->title) . '" width="100%" height="auto">
                     <h5 style=" text-align: center;">' . esc_html($sub_card->title) . '</h5>
                     <h7 style="color: #3f596b;font-size: 7px;text-align: center;">' . esc_html($sub_card->click) . '</h7>
-                    <
-                    br>
                 </div>
             </div>';
     }
