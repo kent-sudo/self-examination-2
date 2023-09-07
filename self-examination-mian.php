@@ -707,13 +707,15 @@ function get_all_sub_cards() {
 
 function show_cards_shortcode($atts) {
     $cards = get_all_cards();
-    $sub_cards = get_all_sub_cards();
 
     $output = '
     <div class="container">
+    <br>
     <div class="row self-examination-main">
     <em style=" text-align: center;">Step 1</em>
-    <h3 style=" text-align: center;">選擇設備類型</h3>';
+    <br>
+    <h3 style=" text-align: center;">選擇設備類型</h3>
+    <br>';
 
     // Generating main card HTML
     foreach ($cards as $card) {
@@ -726,10 +728,15 @@ function show_cards_shortcode($atts) {
                 </div>
             </div>';
     }
+    $sub_cards = get_all_sub_cards();
+
 
     // Generating sub-card container HTML
-    $output .= ' <em style=" text-align: center;">Step 2 </em>
-                <h3 style=" text-align: center;">選擇發生的狀況類型</h3>';
+    $output .= ' <br>
+                <em style=" text-align: center;">Step 2 </em>
+                <br>
+                <h3 style=" text-align: center;">選擇發生的狀況類型</h3>
+                <br>';
     foreach ($sub_cards as $sub_card) {
         $output .= '
             <div class="col col-4 col-sm-4 col-md-2 col-lg-2 kent-sub-cards-container " style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
@@ -737,13 +744,18 @@ function show_cards_shortcode($atts) {
                     <img src="' . esc_url($sub_card->image_url) . '" alt="' . esc_attr($sub_card->title) . '" width="100%" height="auto">
                     <h5 style=" text-align: center;">' . esc_html($sub_card->title) . '</h5>
                     <h7 style="color: #3f596b;font-size: 7px;text-align: center;">' . esc_html($sub_card->click) . '</h7>
+                    <
+                    br>
                 </div>
             </div>';
     }
 
     // Generating sub-card description HTML
-    $output .= ' <em style=" text-align: center;">Step 3</em>
-                <h3 style=" text-align: center;">故障狀況&解決方式</h3>';
+    $output .= ' <br>
+                <em style=" text-align: center;">Step 3</em>
+                <br>
+                <h3 style=" text-align: center;">故障狀況&解決方式</h3>
+                <br>';
     foreach ($sub_cards as $sub_card) {
         $output .= '
         <div class="kent-sub-card-description"  style="display: none; text-align: ;" data-card-id="' . esc_attr($sub_card->id) . '">

@@ -32,12 +32,19 @@ jQuery(document).ready(function($) {
     // Event delegation for sub card click
     $(document).on('click', '.kent-sub-card', function() {
         var cardId = $(this).data('card-id');
-
+        var subCardDescription = $('.kent-sub-card-description[data-card-id="' + cardId + '"]');
         // Hide all sub card descriptions
         $('.kent-sub-card-description').hide();
+        subCardDescription.slideToggle();
 
+        // Scroll to the clicked sub card container
+        if (subCardDescription.is(':visible')) {
+            $('html, body').animate({
+                scrollTop: subCardDescription.offset().top - 150
+            }, 800);
+        }
         // Show the description of the clicked sub card
-        $('.kent-sub-card-description[data-card-id="' + cardId + '"]').show();
+        //$('.kent-sub-card-description[data-card-id="' + cardId + '"]').show();
     });
 
     // Event delegation for sub card container click
