@@ -263,7 +263,7 @@ function handle_sub_card_submission() {
             'image_url' => $image_url, // Use the image URL from file upload
         );
 
-        $format = array('%s', '%s', '%d', '%s'); // Add %d for integer data
+        $format = array('%s', '%s', '%d', '%s','%s'); // Add %d for integer data
 
         if ($wpdb->insert($sub_table_name, $data, $format)) {
             wp_redirect(admin_url('admin.php?page=manage_sub_cards&success=true'));
@@ -661,7 +661,7 @@ function handle_edit_sub_card_submission() {
             'image_url' => $image_url, // Use the image URL from file upload
         );
         $where = array('id' => $sub_card_id);
-        $format = array('%s', '%s', '%s'); // Data format (%s as string; more info in the wpdb documentation)
+        $format = array('%s', '%s', '%s','%s'); // Data format (%s as string; more info in the wpdb documentation)
         $where_format = array('%d'); // Where format
 
         if ($wpdb->update($table_name, $data, $where, $format, $where_format)) {
