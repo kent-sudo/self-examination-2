@@ -739,7 +739,7 @@ function show_cards_shortcode($atts) {
                 <br>';
     foreach ($sub_cards as $sub_card) {
         $output .= '
-            <div class="col col-4 col-sm-4 col-md-2 col-lg-2 kent-sub-cards-container " style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
+            <div class="col col-4 col-sm-4 col-md-2 col-lg-2 kent-sub-cards-container kent-sub-card" style="display: none;" data-card-id="' . esc_attr($sub_card->card_id) . '">
                 <div class="card shadow-sm h-100 kent-sub-card" data-card-id="' . esc_attr($sub_card->id) . '">
                     <img src="' . esc_url($sub_card->image_url) . '" alt="' . esc_attr($sub_card->title) . '" width="100%" height="auto">
                     <h5 style=" text-align: center;">' . esc_html($sub_card->title) . '</h5>

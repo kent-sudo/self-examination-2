@@ -51,7 +51,6 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.kent-sub-cards-container', function() {
         // Remove the 'kent-sub-cards-container-clicked' class from all elements
         $('.kent-sub-cards-container').removeClass('kent-sub-cards-container-clicked');
-
         // Add the 'kent-sub-cards-container-clicked' class to the clicked element
         $(this).addClass('kent-sub-cards-container-clicked');
     });
