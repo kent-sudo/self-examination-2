@@ -5,7 +5,6 @@ jQuery(document).ready(function($) {
 
         var cardId = $(this).data('card-id');
         var subCards = $('.kent-sub-cards-container[data-card-id="' + cardId + '"]');
-
         // Hide other sub card containers
         $('.kent-sub-cards-container').not(subCards).slideUp();
 
@@ -30,8 +29,8 @@ jQuery(document).ready(function($) {
     });
 
     // Event delegation for sub card click
-    $(document).on('click', '.kent-sub-card', function() {
-        var cardId = $(this).data('card-id');
+    $(document).on('click', '.kent-sub-cards-container', function() {
+        var cardId = $(this).data('sub-card-id');
         var subCardDescription = $('.kent-sub-card-description[data-card-id="' + cardId + '"]');
         // Hide all sub card descriptions
         $('.kent-sub-card-description').hide();
